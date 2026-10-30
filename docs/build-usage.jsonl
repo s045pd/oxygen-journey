@@ -1,0 +1,4 @@
+{"ts":"2026-10-30T00:29:17.963Z","label":"shell-v1","model":"claude-opus-4-5-20251101","input_tokens":997,"output_tokens":18219,"cache_read_input_tokens":0,"cache_creation_input_tokens":0,"ms":200839,"stop_reason":"end_turn"}
+{"ts":"2026-10-30T00:31:43.887Z","label":"levels14-v1","model":"claude-opus-4-5-20251101","input_tokens":1692,"output_tokens":10144,"cache_read_input_tokens":0,"cache_creation_input_tokens":0,"ms":136901,"stop_reason":"end_turn"}
+{"ts":"2026-10-30T00:34:42.834Z","label":"levels510-v1","model":"claude-opus-4-5-20251101","input_tokens":1337,"output_tokens":16929,"cache_read_input_tokens":0,"cache_creation_input_tokens":0,"ms":172423,"stop_reason":"end_turn"}
+{"ts":"2026-10-30T00:37:54.436Z","label":"fix-cam-v1","model":"claude-opus-4-5-20251101","input_tokens":11082,"output_tokens":15540,"cache_read_input_tokens":0,"cache_creation_input_tokens":0,"ms":164847,"stop_reason":"end_turn"}
