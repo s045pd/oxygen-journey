@@ -1,3 +1,7 @@
+/**
+ * Oxygen Journey — level scene registry.
+ */
+import type { LevelId } from '../types';
 import type { LevelScene } from './base';
 import { Level01Breathe } from './level01_breathe';
 import { Level02Tree } from './level02_tree';
@@ -10,7 +14,9 @@ import { Level08Burn } from './level08_burn';
 import { Level09Run } from './level09_run';
 import { Level10Out } from './level10_out';
 
-export const levelFactories: Record<string, () => LevelScene> = {
+export type LevelFactory = () => LevelScene;
+
+export const LEVEL_FACTORIES: Partial<Record<LevelId, LevelFactory>> = {
   breathe: () => new Level01Breathe(),
   tree: () => new Level02Tree(),
   unfold: () => new Level03Unfold(),
@@ -23,4 +29,18 @@ export const levelFactories: Record<string, () => LevelScene> = {
   out: () => new Level10Out(),
 };
 
-export { LevelScene } from './base';
+export function hasLevelScene(id: LevelId): boolean {
+  return LEVEL_FACTORIES[id] !== undefined;
+}
+
+export function createLevelScene(id: LevelId): LevelScene | null {
+  const factory = LEVEL_FACTORIES[id];
+  return factory ? factory() : null;
+}
+
+export function getLevelFactory(id: LevelId): LevelFactory | undefined {
+  return LEVEL_FACTORIES[id];
+}
+
+export const levelFactories = LEVEL_FACTORIES;
+export const createLevel = createLevelScene;
