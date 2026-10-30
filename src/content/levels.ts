@@ -7,7 +7,7 @@ export const LEVELS: LevelDef[] = [
     title: 'Breathe In',
     scaleLabel: 'x1 WHOLE BODY',
     tourText: 'Your journey begins with a single breath. Air rushes through your nose and mouth, travelling down the trachea towards your lungs. This is the start of respiration—the process that keeps every cell in your body alive.',
-    yourTurn: 'Hold SPACE (or the Hold button) to breathe in. Watch your chest expand as the diaphragm contracts and pulls air into the lungs.',
+    yourTurn: 'Hold SPACE (or HOLD) to inhale. Release to exhale. Watch ribs expand and lung volume rise.',
     controlKind: 'hold',
     controlLabel: 'Hold to inhale',
     quiz: [
@@ -29,9 +29,9 @@ export const LEVELS: LevelDef[] = [
     title: 'Bronchial Tree',
     scaleLabel: 'x10 AIRWAYS',
     tourText: 'Inside your lungs, the airways branch like an upside-down tree. The trachea splits into two bronchi, which divide again and again into smaller bronchioles. This branching pattern maximises the surface area for gas exchange.',
-    yourTurn: 'Drag to rotate the bronchial tree. Notice how each branch gets progressively smaller, ending in tiny air sacs called alveoli.',
-    controlKind: 'drag',
-    controlLabel: 'Drag to rotate',
+    yourTurn: 'Tap SPACE to grow the next airway bifurcation. Climb toward ~23 generations.',
+    controlKind: 'tap',
+    controlLabel: 'Tap to branch',
     quiz: [
       {
         question: 'The trachea first divides into:',
@@ -49,11 +49,11 @@ export const LEVELS: LevelDef[] = [
     id: 'unfold',
     roman: 'III',
     title: 'Alveoli Unfold',
-    scaleLabel: 'x1000 ALVEOLI',
+    scaleLabel: 'x1e3 ALVEOLI',
     tourText: 'At the end of each bronchiole sit clusters of alveoli—tiny air sacs with walls just one cell thick. If you could flatten out all 300 million alveoli in your lungs, they would cover a tennis court!',
-    yourTurn: 'Tap SPACE to unfold the alveoli and reveal their grape-like structure. Each one is wrapped in a network of capillaries.',
-    controlKind: 'tap',
-    controlLabel: 'Tap to unfold',
+    yourTurn: 'Drag to unfold the alveolar cluster. Watch surface area climb toward tennis-court scale.',
+    controlKind: 'drag',
+    controlLabel: 'Drag to unfold',
     quiz: [
       {
         question: 'Approximately how many alveoli are in human lungs?',
@@ -71,11 +71,11 @@ export const LEVELS: LevelDef[] = [
     id: 'swap',
     roman: 'IV',
     title: 'Gas Exchange',
-    scaleLabel: 'x10000 MEMBRANE',
+    scaleLabel: 'x1e4 MEMBRANE',
     tourText: 'Here at the alveolar membrane, the magic happens. Oxygen diffuses from the air into the blood, while carbon dioxide moves the opposite way. This exchange happens because gases move from high to low concentration—a process called diffusion.',
-    yourTurn: 'Hold SPACE to boost oxygen diffusion. Use the slider to adjust membrane thickness and see how it affects exchange rate.',
+    yourTurn: 'Hold SPACE to run O₂ ↔ CO₂ diffusion. Use the thickness slider — thicker walls slow exchange.',
     controlKind: 'hold',
-    controlLabel: 'Hold for O₂ diffusion',
+    controlLabel: 'Hold to exchange',
     extraSlider: { label: 'Membrane thickness', initial: 0.3 },
     quiz: [
       {
@@ -94,11 +94,11 @@ export const LEVELS: LevelDef[] = [
     id: 'ride',
     roman: 'V',
     title: 'Haemoglobin Ride',
-    scaleLabel: 'x100000 BLOOD',
+    scaleLabel: 'x1e5 BLOOD',
     tourText: 'Oxygen doesn\'t travel alone in your blood. It hitches a ride on haemoglobin molecules inside red blood cells. Each haemoglobin can carry four oxygen molecules, turning the blood bright red.',
-    yourTurn: 'Use the slider to adjust oxygen levels. Watch haemoglobin change colour from dark purple (deoxygenated) to bright red (oxygenated).',
-    controlKind: 'slider',
-    controlLabel: 'Adjust O₂ saturation',
+    yourTurn: 'Drag to move the red blood cell along the capillary. Pick up oxygen at haemoglobin sites.',
+    controlKind: 'drag',
+    controlLabel: 'Drag the RBC',
     quiz: [
       {
         question: 'How many oxygen molecules can one haemoglobin carry?',
@@ -118,7 +118,7 @@ export const LEVELS: LevelDef[] = [
     title: 'Heart Pump',
     scaleLabel: 'x10 HEART',
     tourText: 'Your heart is a tireless pump, beating around 100,000 times per day. The right side receives deoxygenated blood and sends it to the lungs. The left side receives oxygenated blood from the lungs and pumps it to the body.',
-    yourTurn: 'Tap SPACE to trigger heartbeats. Watch how the four chambers contract in sequence to move blood efficiently.',
+    yourTurn: 'Tap SPACE to beat the heart. Tap too fast and chambers cannot fill completely.',
     controlKind: 'tap',
     controlLabel: 'Tap to beat',
     quiz: [
@@ -140,9 +140,9 @@ export const LEVELS: LevelDef[] = [
     title: 'Double Loop',
     scaleLabel: 'x1 BODY',
     tourText: 'Humans have a double circulatory system. The pulmonary loop carries blood between heart and lungs. The systemic loop carries blood between heart and body. This separation keeps oxygenated and deoxygenated blood from mixing.',
-    yourTurn: 'Drag to rotate the circulation model. Trace the two loops: blue vessels carry deoxygenated blood, red carry oxygenated.',
-    controlKind: 'drag',
-    controlLabel: 'Drag to rotate',
+    yourTurn: 'Tap SPACE to send a cell along the pulmonary or systemic loop. Watch the two circuits.',
+    controlKind: 'tap',
+    controlLabel: 'Tap to switch path',
     quiz: [
       {
         question: 'The pulmonary loop connects the heart to the:',
@@ -160,11 +160,11 @@ export const LEVELS: LevelDef[] = [
     id: 'burn',
     roman: 'VIII',
     title: 'Cell Respiration',
-    scaleLabel: 'x1000000 CELL',
+    scaleLabel: 'x1e6 CELL',
     tourText: 'Inside every cell, mitochondria use oxygen to release energy from glucose. This is aerobic respiration: glucose + oxygen → carbon dioxide + water + energy (ATP). Without this process, your cells couldn\'t function.',
-    yourTurn: 'Hold SPACE to supply oxygen. Use the slider to adjust glucose levels. Both are needed for respiration to occur!',
+    yourTurn: 'Hold SPACE to supply oxygen. Set glucose with the slider. ATP rises when both are present.',
     controlKind: 'hold',
-    controlLabel: 'Hold for O₂ supply',
+    controlLabel: 'Hold for O₂',
     extraSlider: { label: 'Glucose', initial: 0.5 },
     quiz: [
       {
@@ -185,9 +185,9 @@ export const LEVELS: LevelDef[] = [
     title: 'Exercise Response',
     scaleLabel: 'x1 BODY',
     tourText: 'When you exercise, your muscles demand more oxygen. Your body responds by breathing faster, heart beating quicker, and blood vessels dilating. This coordinated response delivers oxygen where it\'s needed most.',
-    yourTurn: 'Use the slider to increase exercise intensity. Watch how breathing rate, heart rate and blood flow all increase together.',
-    controlKind: 'slider',
-    controlLabel: 'Adjust exercise intensity',
+    yourTurn: 'Drag up/down to set exercise intensity. High effort builds O₂ debt; ease off to repay it.',
+    controlKind: 'drag',
+    controlLabel: 'Drag effort',
     quiz: [
       {
         question: 'During exercise, breathing rate:',
@@ -207,7 +207,7 @@ export const LEVELS: LevelDef[] = [
     title: 'Breathe Out',
     scaleLabel: 'x1 LAB',
     tourText: 'Your journey ends where it began—with a breath, but now going out. The carbon dioxide produced by your cells has travelled back through your blood, to your lungs, and out into the air. The cycle continues with every breath you take.',
-    yourTurn: 'Hold SPACE to exhale completely. Watch the CO₂ leave your body, completing the respiratory cycle.',
+    yourTurn: 'Hold SPACE to bubble exhaled air into the flasks. Compare clear air vs milky limewater.',
     controlKind: 'hold',
     controlLabel: 'Hold to exhale',
     quiz: [
