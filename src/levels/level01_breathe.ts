@@ -213,25 +213,27 @@ export class Level01Breathe extends LevelScene {
       this.chest.add(g);
     }
 
-    /* Airway: trachea, cartilage rings, main bronchi */
-    const airwayMat = neonMaterial(AIRWAY, 0.55, 0.22);
+    /* Airway: calm shaft + brighter rings (avoid bloom-white axial pillar) */
+    const tracheaMat = neonMaterial(AIRWAY, 0.22, 0.38);
+    const ringMat = neonMaterial(AIRWAY, 0.4, 0.26);
+    const bronchMat = neonMaterial(AIRWAY, 0.3, 0.32);
     const trachea = new THREE.TubeGeometry(
       new THREE.LineCurve3(new THREE.Vector3(0, 0.68, 0), new THREE.Vector3(0, 0.29, 0)),
       6,
-      0.02,
+      0.017,
       14,
       false,
     );
-    this.chest.add(new THREE.Mesh(trachea, airwayMat));
-    const ringGeo = new THREE.TorusGeometry(0.0215, 0.0042, 6, 20, Math.PI * 1.6);
+    this.chest.add(new THREE.Mesh(trachea, tracheaMat));
+    const ringGeo = new THREE.TorusGeometry(0.0195, 0.0036, 6, 20, Math.PI * 1.6);
     ringGeo.rotateZ(-Math.PI * 0.3);
     ringGeo.rotateX(Math.PI / 2);
     for (let k = 0; k < 8; k++) {
-      const ring = new THREE.Mesh(ringGeo, airwayMat);
+      const ring = new THREE.Mesh(ringGeo, ringMat);
       ring.position.y = 0.65 - k * 0.045;
       this.chest.add(ring);
     }
-    const carina = new THREE.Mesh(new THREE.SphereGeometry(0.02, 16, 12), airwayMat);
+    const carina = new THREE.Mesh(new THREE.SphereGeometry(0.016, 16, 12), bronchMat);
     carina.position.y = 0.29;
     this.chest.add(carina);
     for (const side of [1, -1]) {
@@ -241,7 +243,7 @@ export class Level01Breathe extends LevelScene {
         new THREE.Vector3(side * 0.095, 0.21, 0),
         new THREE.Vector3(side * 0.13, 0.14, 0),
       ]);
-      this.chest.add(new THREE.Mesh(new THREE.TubeGeometry(c, 20, 0.0125, 10), airwayMat));
+      this.chest.add(new THREE.Mesh(new THREE.TubeGeometry(c, 20, 0.011, 10), bronchMat));
     }
 
     /* Rib cage, sternum, spine */
@@ -363,14 +365,14 @@ export class Level01Breathe extends LevelScene {
     this.airGeo = new THREE.BufferGeometry();
     this.airGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(nAir * 3), 3));
     this.airGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(nAir * 3), 3));
-    this.airMat = glowPointsMaterial(0xffffff, 0.034, 0, true);
+    this.airMat = glowPointsMaterial(0xa8e8ff, 0.022, 0, true);
     const air = new THREE.Points(this.airGeo, this.airMat);
     air.frustumCulled = false;
     air.renderOrder = 5;
     this.chest.add(air);
 
     /* Motivated inner glow */
-    this.glow = new THREE.PointLight(CYAN, 0.5, 1.6, 2);
+    this.glow = new THREE.PointLight(CYAN, 0.35, 1.6, 2);
     this.glow.position.set(0, 0.06, 0.3);
     this.chest.add(this.glow);
   }
@@ -415,12 +417,12 @@ export class Level01Breathe extends LevelScene {
     this.sparkMat.opacity = 0.15 + 0.75 * e;
     this.domeMat.emissiveIntensity = 0.2 + 0.7 * drive;
     this.fiberMat.opacity = 0.22 + 0.6 * drive;
-    this.glow.intensity = 0.3 + 1.0 * e;
+    this.glow.intensity = 0.22 + 0.7 * e;
 
     // Airflow: direction and brightness follow the rate of breathing.
     const f = this.flow;
     this.airPhase += f * dt * 1.25;
-    this.airMat.opacity = clamp01(Math.abs(f) * 1.8);
+    this.airMat.opacity = clamp01(Math.abs(f) * 1.15);
     this.airMat.color.copy(_cA).lerp(_cB, clamp01(-f * 4));
     const pos = this.airGeo.getAttribute('position') as THREE.BufferAttribute;
     const col = this.airGeo.getAttribute('color') as THREE.BufferAttribute;
