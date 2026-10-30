@@ -648,7 +648,7 @@ export class Level10Out extends LevelScene {
     const liquidMat = new THREE.MeshStandardMaterial({
       color: LIQ_CLEAR.clone(),
       emissive: EMI_CLEAR.clone(),
-      emissiveIntensity: 0.35,
+      emissiveIntensity: 0.18,
       roughness: 0.18,
       metalness: 0,
       transparent: true,
@@ -660,7 +660,7 @@ export class Level10Out extends LevelScene {
     g.add(liquid);
 
     // Surface ring.
-    const surfaceMat = neonMaterial(COL_AIR, 0.6);
+    const surfaceMat = neonMaterial(COL_AIR, 0.35);
     const surface = new THREE.Mesh(new THREE.TorusGeometry(topR, 0.003, 6, 72), surfaceMat);
     surface.rotation.x = Math.PI / 2;
     surface.position.y = FILL_H;
@@ -673,10 +673,10 @@ export class Level10Out extends LevelScene {
       new THREE.MeshStandardMaterial({ color: 0x15161c, roughness: 0.6, metalness: 0.1 }),
     );
     stopper.position.y = 0.635;
-    const stopRing = new THREE.Mesh(new THREE.TorusGeometry(0.074, 0.003, 6, 48), neonMaterial(accent, 1.2));
+    const stopRing = new THREE.Mesh(new THREE.TorusGeometry(0.074, 0.003, 6, 48), neonMaterial(accent, 0.65));
     stopRing.rotation.x = Math.PI / 2;
     stopRing.position.y = 0.665;
-    const baseRingMat = neonMaterial(accent, 1.0);
+    const baseRingMat = neonMaterial(accent, 0.55);
     const baseRing = new THREE.Mesh(new THREE.TorusGeometry(0.222, 0.004, 6, 96), baseRingMat);
     baseRing.rotation.x = Math.PI / 2;
     baseRing.position.y = 0.004;
@@ -1003,13 +1003,13 @@ export class Level10Out extends LevelScene {
     const sc = 1 + Math.sin(time * 22) * 0.012 * rip;
     f.surface.scale.set(sc, sc, 1);
     f.surface.position.y = FILL_H + Math.sin(time * 17) * 0.002 * rip;
-    f.surfaceMat.emissiveIntensity = 0.45 + rip * 1.2 + vis * 0.3;
+    f.surfaceMat.emissiveIntensity = 0.25 + rip * 0.55 + vis * 0.15;
 
     // Limewater colour: clear → milky.
     const k = Math.pow(clamp01(vis), 0.8);
     f.liquidMat.color.copy(LIQ_CLEAR).lerp(LIQ_MILK, k);
     f.liquidMat.emissive.copy(EMI_CLEAR).lerp(EMI_MILK, k);
-    f.liquidMat.emissiveIntensity = lerp(0.35, 0.7, k) + flash * 0.5 + flow * 0.1;
+    f.liquidMat.emissiveIntensity = lerp(0.16, 0.38, k) + flash * 0.25 + flow * 0.06;
     f.liquidMat.opacity = lerp(0.34, 0.9, k);
 
     // Precipitate specks swirl, faster when bubbling.
@@ -1033,7 +1033,7 @@ export class Level10Out extends LevelScene {
     setUniform(f.gauge, 'uProgress', clamp01(vis));
     setUniform(f.gauge, 'uGlow', 0.8 + flow * 0.6 + flash * 1.5 + hl * 0.3);
     setFresnel(f.shellMat, 0.55 + hl * 0.9 + flow * 0.25);
-    f.baseRingMat.emissiveIntensity = 0.8 + hl * 1.2 + flash * 1.5;
+    f.baseRingMat.emissiveIntensity = 0.4 + hl * 0.55 + flash * 0.7;
     f.tipGlowMat.opacity = clamp01(flow * 1.2) * 0.9;
     f.tipGlow.scale.setScalar(0.05 + flow * 0.07);
   }

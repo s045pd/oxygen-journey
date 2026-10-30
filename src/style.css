@@ -46,7 +46,7 @@
   --pad-b: calc(var(--safe-b) + var(--edge));
   --pad-l: calc(var(--safe-l) + var(--edge));
 
-  --rail-w: 54px;
+  --rail-w: 68px;
   --ctrl-h: 46px;
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -1018,13 +1018,14 @@ canvas.webgl:active {
   position: absolute;
   z-index: 9;
   top: 45%;
-  right: calc(var(--safe-r) + 10px);
+  right: calc(var(--safe-r) + 8px);
   width: var(--rail-w);
-  height: min(44vh, 400px);
-  height: min(44svh, 400px);
+  height: min(52vh, 460px);
+  height: min(52svh, 460px);
   transform: translateY(-50%);
   pointer-events: none;
   transition: opacity 0.6s var(--ease-out);
+  filter: drop-shadow(0 0 6px rgba(56, 240, 255, 0.18));
 }
 
 .sb-splashing .scale-ring-host {
@@ -1039,26 +1040,26 @@ canvas.webgl:active {
 }
 
 .ring-minor line {
-  stroke: rgba(214, 228, 255, 0.14);
-  stroke-width: 1;
+  stroke: rgba(214, 228, 255, 0.32);
+  stroke-width: 1.2;
 }
 
 .ring-track {
   fill: none;
-  stroke: var(--line-strong);
-  stroke-width: 1;
+  stroke: rgba(160, 205, 255, 0.5);
+  stroke-width: 1.6;
 }
 
 .ring-progress {
   fill: none;
   stroke: var(--accent);
-  stroke-width: 2;
+  stroke-width: 2.8;
   stroke-linecap: round;
-  filter: drop-shadow(0 0 4px var(--accent));
+  filter: drop-shadow(0 0 6px var(--accent));
 }
 
 .ring-tick {
-  fill: rgba(214, 228, 255, 0.3);
+  fill: rgba(214, 228, 255, 0.55);
   transition: fill 0.4s;
 }
 
@@ -1073,39 +1074,39 @@ canvas.webgl:active {
 
 .ring-halo {
   fill: var(--accent);
-  opacity: 0.16;
+  opacity: 0.28;
 }
 
 .ring-arm {
   stroke: var(--accent);
-  stroke-width: 1.5;
+  stroke-width: 2;
   stroke-linecap: round;
-  filter: drop-shadow(0 0 3px var(--accent));
+  filter: drop-shadow(0 0 4px var(--accent));
 }
 
 .ring-head {
   fill: #ffffff;
   stroke: var(--accent);
-  stroke-width: 1.5;
-  filter: drop-shadow(0 0 4px var(--accent));
+  stroke-width: 1.8;
+  filter: drop-shadow(0 0 6px var(--accent));
 }
 
 .ring-label {
-  font: 500 9px var(--font-mono);
-  letter-spacing: 0.1em;
-  fill: var(--ink-faint);
+  font: 600 11px var(--font-mono);
+  letter-spacing: 0.08em;
+  fill: rgba(214, 228, 255, 0.72);
   text-anchor: end;
   dominant-baseline: middle;
   paint-order: stroke;
-  stroke: rgba(7, 10, 16, 0.85);
-  stroke-width: 3px;
+  stroke: rgba(7, 10, 16, 0.92);
+  stroke-width: 3.5px;
   stroke-linejoin: round;
 }
 
 .ring-label.is-active {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
-  fill: var(--ink);
+  fill: #eef5ff;
 }
 
 .ring-label .ring-pow {
@@ -1117,7 +1118,7 @@ canvas.webgl:active {
 }
 
 .ring-pip {
-  fill: rgba(214, 228, 255, 0.16);
+  fill: rgba(214, 228, 255, 0.28);
   transition: fill 0.4s;
 }
 
@@ -1419,7 +1420,7 @@ canvas.webgl:active {
 @media (max-width: 900px) {
   :root {
     --edge: 14px;
-    --rail-w: 46px;
+    --rail-w: 56px;
   }
 
   .sb-text {
@@ -1433,7 +1434,7 @@ canvas.webgl:active {
 @media (max-width: 560px) {
   :root {
     --edge: 10px;
-    --rail-w: 30px;
+    --rail-w: 40px;
     --ctrl-h: 42px;
   }
 
@@ -1580,10 +1581,10 @@ canvas.webgl:active {
   }
 
   .scale-ring-host {
-    top: 37%;
-    right: calc(var(--safe-r) + 3px);
-    height: min(30vh, 250px);
-    height: min(30svh, 250px);
+    top: 38%;
+    right: calc(var(--safe-r) + 2px);
+    height: min(36vh, 300px);
+    height: min(36svh, 300px);
   }
 
   .ring-end {
@@ -1591,7 +1592,7 @@ canvas.webgl:active {
   }
 
   .ring-label.is-active {
-    font-size: 9px;
+    font-size: 10px;
   }
 
   /* Splash: bottom-anchored, stage visible above */
@@ -1686,7 +1687,7 @@ canvas.webgl:active {
 @media (max-height: 500px) and (orientation: landscape) {
   :root {
     --edge: 10px;
-    --rail-w: 36px;
+    --rail-w: 44px;
     --ctrl-h: 38px;
   }
 

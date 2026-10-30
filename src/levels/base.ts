@@ -95,30 +95,61 @@ export function applyHudSafeFraming(cam: THREE.PerspectiveCamera, w: number, h: 
   cam.setViewOffset(W, H, 0, shift, W, H);
 }
 
-/** Dispose geometries, materials and textures under an object. */
+/** Dispose geometries, materials and textures under an object (deduped, context-safe). */
 export function disposeObject3D(obj: THREE.Object3D): void {
+  const geos = new Set<THREE.BufferGeometry>();
   const mats = new Set<THREE.Material>();
+  const meshes: Array<THREE.Object3D & {
+    geometry?: THREE.BufferGeometry | null;
+    material?: THREE.Material | THREE.Material[] | null;
+  }> = [];
+
   obj.traverse((o) => {
     const node = o as THREE.Object3D & {
       geometry?: THREE.BufferGeometry;
       material?: THREE.Material | THREE.Material[];
     };
-    node.geometry?.dispose();
+    meshes.push(node);
+    if (node.geometry) geos.add(node.geometry);
     if (Array.isArray(node.material)) node.material.forEach((m) => mats.add(m));
     else if (node.material) mats.add(node.material);
-    if ((o as THREE.InstancedMesh).isInstancedMesh) (o as THREE.InstancedMesh).dispose();
   });
-  for (const m of mats) {
-    for (const value of Object.values(m)) {
-      if (value instanceof THREE.Texture) value.dispose();
-    }
-    const uniforms = (m as THREE.ShaderMaterial).uniforms;
-    if (uniforms) {
-      for (const u of Object.values(uniforms)) {
-        if (u && u.value instanceof THREE.Texture) u.value.dispose();
+
+  // Detach GPU resources from scene graph before deleting VAOs / programs.
+  for (const node of meshes) {
+    if ((node as THREE.InstancedMesh).isInstancedMesh) {
+      try {
+        (node as THREE.InstancedMesh).dispose();
+      } catch {
+        /* ignore stale-context dispose */
       }
     }
-    m.dispose();
+    node.geometry = undefined as unknown as THREE.BufferGeometry;
+    node.material = undefined as unknown as THREE.Material;
+  }
+
+  for (const g of geos) {
+    try {
+      g.dispose();
+    } catch {
+      /* ignore stale-context dispose */
+    }
+  }
+  for (const m of mats) {
+    try {
+      for (const value of Object.values(m)) {
+        if (value instanceof THREE.Texture) value.dispose();
+      }
+      const uniforms = (m as THREE.ShaderMaterial).uniforms;
+      if (uniforms) {
+        for (const u of Object.values(uniforms)) {
+          if (u && u.value instanceof THREE.Texture) u.value.dispose();
+        }
+      }
+      m.dispose();
+    } catch {
+      /* ignore stale-context dispose */
+    }
   }
 }
 

@@ -112,16 +112,16 @@ export function mountScaleRing(el: HTMLElement, options: ScaleRingOptions = {}):
   const gEnds = svgEl('g', {}, svg);
 
   const needle = svgEl('g', { class: 'ring-needle' }, svg);
-  const halo = svgEl('circle', { class: 'ring-halo', r: 7 }, needle);
+  const halo = svgEl('circle', { class: 'ring-halo', r: 9 }, needle);
   const arm = svgEl('line', { class: 'ring-arm' }, needle);
-  const headDot = svgEl('circle', { class: 'ring-head', r: 3.2 }, needle);
+  const headDot = svgEl('circle', { class: 'ring-head', r: 4.2 }, needle);
   const label = svgEl('text', { class: 'ring-label is-active' }, needle);
   const powSpan = svgEl('tspan', { class: 'ring-pow' }, label);
   const nameSpan = svgEl('tspan', { class: 'ring-name' }, label);
   const gPips = svgEl('g', { class: 'ring-pips' }, needle);
   const pips: SVGRectElement[] = [];
   for (let k = 0; k < POWER_PIPS; k++) {
-    pips.push(svgEl('rect', { class: 'ring-pip', width: 3, height: 3, rx: 0.8 }, gPips));
+    pips.push(svgEl('rect', { class: 'ring-pip', width: 4, height: 4, rx: 1 }, gPips));
   }
 
   /* ---- Geometry state ---- */
@@ -153,7 +153,7 @@ export function mountScaleRing(el: HTMLElement, options: ScaleRingOptions = {}):
     lastActive = -1;
     for (let k = 0; k < stages; k++) {
       const p = point(k / (stages - 1));
-      tickEls.push(svgEl('circle', { class: 'ring-tick', cx: f2(p.x), cy: f2(p.y), r: 1.8 }, gTicks));
+      tickEls.push(svgEl('circle', { class: 'ring-tick', cx: f2(p.x), cy: f2(p.y), r: 2.4 }, gTicks));
     }
   };
 
@@ -195,7 +195,7 @@ export function mountScaleRing(el: HTMLElement, options: ScaleRingOptions = {}):
       tickEls.forEach((t, k) => {
         t.classList.toggle('is-active', k === active);
         t.classList.toggle('is-done', k < active);
-        t.setAttribute('r', k === active ? '3.2' : '1.8');
+        t.setAttribute('r', k === active ? '4.2' : '2.4');
       });
     }
   }
@@ -208,7 +208,7 @@ export function mountScaleRing(el: HTMLElement, options: ScaleRingOptions = {}):
 
     const pad = 10;
     const chord = h - pad * 2;
-    const sag = Math.min(w * 0.42, 22);
+    const sag = Math.min(w * 0.48, 28);
     const R = (chord * chord) / 4 / (2 * sag) + sag / 2;
     const xR = w - 5;
     geo.R = R;

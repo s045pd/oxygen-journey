@@ -34,8 +34,8 @@ export function rng(seed: number): () => number {
 /** Dark base + strong emissive: reads as a neon tube under a dim studio. */
 export function neonMaterial(
   color: THREE.ColorRepresentation,
-  intensity = 1.4,
-  base = 0.12,
+  intensity = 0.95,
+  base = 0.14,
 ): THREE.MeshStandardMaterial {
   const c = new THREE.Color(color);
   return new THREE.MeshStandardMaterial({
@@ -117,7 +117,7 @@ export function fresnelMaterial(color: THREE.ColorRepresentation, o: FresnelOpti
     uniforms: {
       uColor: { value: new THREE.Color(color) },
       uPower: { value: o.power ?? 2.4 },
-      uIntensity: { value: o.intensity ?? 1.2 },
+      uIntensity: { value: o.intensity ?? 0.9 },
       uOpacity: { value: o.opacity ?? 1 },
     },
     vertexShader: FRESNEL_VERT,

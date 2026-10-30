@@ -136,7 +136,9 @@ export class App {
 
     this.stage = createRenderer(this.container, {
       accent: ACCENT_HEX.cyan,
-      bloomStrength: this.lowPower ? 0.45 : 0.55,
+      bloomStrength: this.lowPower ? 0.28 : 0.32,
+      bloomThreshold: 0.985,
+      bloomRadius: 0.28,
       maxDpr: this.lowPower ? 1.5 : 2,
     });
     this.unsubResize = this.stage.onResized(() => this.syncViewport(true));
@@ -326,11 +328,20 @@ export class App {
     const lvl = this.level;
     this.level = null;
     try {
+      // Detach from the live scene first so the next frame never draws this level.
       lvl.exit();
-      lvl.dispose();
     } catch (err) {
-      console.error('[app] level teardown failed', err);
+      console.error('[app] level exit failed', err);
     }
+    // Defer GPU dispose one frame so WebGLBindingStates is not mid-draw when
+    // deleteVertexArray runs (avoids "object does not belong to this context").
+    requestAnimationFrame(() => {
+      try {
+        lvl.dispose();
+      } catch (err) {
+        console.error('[app] level dispose failed', err);
+      }
+    });
   }
 
   private doneFlags(): boolean[] {

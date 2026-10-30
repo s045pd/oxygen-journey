@@ -25,13 +25,13 @@ export const STAGE_FOV = 35;
 export const FLOOR_Y = -0.92;
 
 export const STAGE_DEFAULTS = {
-  exposure: 0.95,
-  bloomStrength: 0.55,
-  bloomRadius: 0.38,
-  bloomThreshold: 0.9,
+  exposure: 0.92,
+  bloomStrength: 0.32,
+  bloomRadius: 0.28,
+  bloomThreshold: 0.985,
   fogNear: 12,
   fogFar: 44,
-  envIntensity: 0.7,
+  envIntensity: 0.65,
 } as const;
 
 export interface RendererOptions {

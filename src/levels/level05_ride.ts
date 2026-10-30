@@ -31,7 +31,8 @@ import {
 /** Biconcave disc (thin centre, thick rim), unit radius, disc axis = +Y. */
 export function rbcGeometry(): THREE.LatheGeometry {
   const pts: THREE.Vector2[] = [];
-  const N = 14;
+  const N = 22;
+  // Fung biconcave profile — deep centre dimple, plump torus-like rim.
   const h = (rho: number): number =>
     0.5 * Math.sqrt(Math.max(0, 1 - rho * rho)) * (0.207 + 2.003 * rho * rho - 1.123 * Math.pow(rho, 4));
   for (let i = 0; i <= N; i++) {
@@ -42,7 +43,7 @@ export function rbcGeometry(): THREE.LatheGeometry {
     const rho = Math.sin(((i / N) * Math.PI) / 2);
     pts.push(new THREE.Vector2(rho, h(rho)));
   }
-  return new THREE.LatheGeometry(pts, 28);
+  return new THREE.LatheGeometry(pts, 48);
 }
 
 /** Arc-length lookup table for cheap, evenly-paced sampling along a curve. */
@@ -123,12 +124,12 @@ void main() {
   float zone = smoothstep(uZone0 - 0.035, uZone0 + 0.035, t) * (1.0 - smoothstep(uZone1 - 0.035, uZone1 + 0.035, t));
   float d = (t - uFocus) * 16.0;
   float focus = exp(-d * d);
-  vec3 col = base * (0.22 + 1.3 * fr)
-    + base * flow * (0.25 + 0.5 * fr)
-    + uZoneCol * zone * uZoneAmt * (0.2 + 1.1 * fr)
-    + mix(base, vec3(1.0), 0.25) * focus * 1.1
-    + uB * uDone * 0.45 * (0.3 + fr);
-  float a = clamp((0.1 + 0.8 * fr + 0.18 * flow + 0.35 * focus + 0.15 * zone * uZoneAmt) * uOpacity, 0.0, 1.0);
+  vec3 col = base * (0.18 + 0.85 * fr)
+    + base * flow * (0.16 + 0.28 * fr)
+    + uZoneCol * zone * uZoneAmt * (0.14 + 0.55 * fr)
+    + mix(base, vec3(1.0), 0.18) * focus * 0.55
+    + uB * uDone * 0.28 * (0.25 + fr);
+  float a = clamp((0.1 + 0.7 * fr + 0.14 * flow + 0.22 * focus + 0.12 * zone * uZoneAmt) * uOpacity, 0.0, 1.0);
   gl_FragColor = vec4(col * uGlow, a);
 }
 `;
@@ -212,23 +213,25 @@ export interface RbcRig {
 export function makeRbcRig(): RbcRig {
   const geo = rbcGeometry();
   const mat = new THREE.MeshStandardMaterial({
-    color: 0x3a1450,
-    emissive: 0x7a2fd0,
-    emissiveIntensity: 0.6,
-    roughness: 0.42,
-    metalness: 0,
+    color: 0x5a1840,
+    emissive: 0x9a2a55,
+    emissiveIntensity: 0.45,
+    roughness: 0.38,
+    metalness: 0.05,
     side: THREE.DoubleSide,
   });
-  const rim = fresnelMaterial(0x7a2fd0, { power: 2.0, intensity: 1.1 });
+  const rim = fresnelMaterial(0xff4a6a, { power: 1.85, intensity: 0.95 });
   const body = new THREE.Mesh(geo, mat);
+  // Slight squash so the biconcave disc reads clearly in silhouette.
+  body.scale.set(1, 0.72, 1);
   const shell = new THREE.Mesh(geo, rim);
-  shell.scale.setScalar(1.07);
+  shell.scale.set(1.04, 0.75, 1.04);
   shell.renderOrder = 7;
   const spin = new THREE.Group();
   spin.add(body, shell);
   const glowGeo = new THREE.BufferGeometry();
   glowGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3), 3));
-  const glow = glowPointsMaterial(0x7a2fd0, 0.26, 0.5);
+  const glow = glowPointsMaterial(0xff3a5a, 0.22, 0.35);
   const halo = new THREE.Points(glowGeo, glow);
   halo.frustumCulled = false;
   halo.renderOrder = 8;
@@ -238,14 +241,14 @@ export function makeRbcRig(): RbcRig {
 }
 
 export function tintRbc(rig: RbcRig, c: THREE.Color, flash: number): void {
-  rig.mat.color.copy(c).multiplyScalar(0.42);
+  rig.mat.color.copy(c).multiplyScalar(0.55);
   rig.mat.emissive.copy(c);
-  rig.mat.emissiveIntensity = 0.55 + 0.9 * flash;
+  rig.mat.emissiveIntensity = 0.35 + 0.55 * flash;
   const u = rig.rim.uniforms['uColor'];
   if (u) (u.value as THREE.Color).copy(c);
-  setFresnel(rig.rim, 1.0 + 1.2 * flash);
+  setFresnel(rig.rim, 0.85 + 0.7 * flash);
   rig.glow.color.copy(c);
-  rig.glow.opacity = 0.4 + 0.4 * flash;
+  rig.glow.opacity = 0.28 + 0.3 * flash;
 }
 
 /* ================================ level V ================================== */
@@ -267,11 +270,11 @@ const ZONE1 = 0.74;
 const ALV_C = new THREE.Vector3(0, -0.14, -0.24);
 const ALV_R = 0.48;
 const TUBE_R = 0.068;
-const CELL_R = 0.054;
+const CELL_R = 0.07;
 /** Saturation rises fast: most O₂ is loaded in the first third of the contact zone. */
-const LOAD_K = 9;
-const T_START = 0.03;
-const DRAG_GAIN = 1.2;
+const LOAD_K = 11;
+const T_START = 0.2;
+const DRAG_GAIN = 2.8;
 const TOUR_PERIOD = 8;
 
 const PATH: [number, number, number][] = [
@@ -452,8 +455,10 @@ export class Level05Ride extends LevelScene {
       zone1: ZONE1,
       bands: 16,
       speed: 0.3,
+      opacity: 0.85,
     });
     this.tubeU = flowTubeUniforms(tubeMat);
+    this.tubeU.glow.value = 0.72;
     const tube = new THREE.Mesh(
       new THREE.TubeGeometry(curve, lowPower ? 140 : 220, TUBE_R, lowPower ? 12 : 20, false),
       tubeMat,
@@ -474,23 +479,54 @@ export class Level05Ride extends LevelScene {
     addRing(0.004, this.startMat);
     addRing(0.996, this.endMat);
 
-    // Alveolus (glass air sac + fresnel rim)
-    const sphere = new THREE.SphereGeometry(1, lowPower ? 32 : 56, lowPower ? 22 : 40);
-    this.alvMat = glassMaterial(CYAN, { opacity: 0.1, emissive: 0.14 });
+    // Alveolus — readable air-sac: filled membrane, septal ribs, inner lumen
+    const sphere = new THREE.SphereGeometry(1, lowPower ? 28 : 48, lowPower ? 18 : 32);
+    this.alvMat = glassMaterial(CYAN, { opacity: 0.22, emissive: 0.08, roughness: 0.28, side: THREE.DoubleSide });
     const alv = new THREE.Mesh(sphere, this.alvMat);
     alv.position.copy(ALV_C);
     alv.scale.setScalar(ALV_R);
     alv.renderOrder = 1;
-    this.alvRim = fresnelMaterial(CYAN, { power: 2.6, intensity: 0.9 });
+    this.alvRim = fresnelMaterial(CYAN, { power: 2.4, intensity: 0.7 });
     const alvRim = new THREE.Mesh(sphere, this.alvRim);
     alvRim.position.copy(ALV_C);
-    alvRim.scale.setScalar(ALV_R * 1.004);
+    alvRim.scale.setScalar(ALV_R * 1.006);
     alvRim.renderOrder = 2;
-    this.root.add(alv, alvRim);
+    // Inner lumen fill so it never reads as a hollow shell
+    const lumenMat = glassMaterial(0x9ef6ff, { opacity: 0.12, emissive: 0.06, roughness: 0.55 });
+    const lumen = new THREE.Mesh(sphere, lumenMat);
+    lumen.position.copy(ALV_C);
+    lumen.scale.setScalar(ALV_R * 0.86);
+    lumen.renderOrder = 0;
+    this.root.add(lumen, alv, alvRim);
 
-    // Neighbouring alveoli (depth cue)
-    const nbGlass = glassMaterial(CYAN, { opacity: 0.05, emissive: 0.08 });
-    const nbRim = fresnelMaterial(CYAN, { power: 2.8, intensity: 0.45 });
+    // Septal walls — great-circle ribs that read as alveolar structure
+    const septumMat = neonMaterial(CYAN, 0.4, 0.15);
+    const septumGeo = new THREE.TorusGeometry(ALV_R * 0.92, 0.006, 6, lowPower ? 48 : 80);
+    for (let k = 0; k < 5; k++) {
+      const rib = new THREE.Mesh(septumGeo, septumMat);
+      rib.position.copy(ALV_C);
+      rib.rotation.set((k * 0.55) % Math.PI, k * 1.1, (k * 0.37) % Math.PI);
+      rib.renderOrder = 2;
+      this.root.add(rib);
+    }
+    // Surface type-II cell dots (surfactant hint)
+    const nSurf = lowPower ? 36 : 64;
+    const surfPos = new Float32Array(nSurf * 3);
+    for (let i = 0; i < nSurf; i++) {
+      randomUnit(_d, R).multiplyScalar(ALV_R * 1.01);
+      surfPos[i * 3] = ALV_C.x + _d.x;
+      surfPos[i * 3 + 1] = ALV_C.y + _d.y;
+      surfPos[i * 3 + 2] = ALV_C.z + _d.z;
+    }
+    const surfGeo = new THREE.BufferGeometry();
+    surfGeo.setAttribute('position', new THREE.BufferAttribute(surfPos, 3));
+    const surfPts = new THREE.Points(surfGeo, glowPointsMaterial(0xb8fff8, 0.03, 0.55));
+    surfPts.renderOrder = 3;
+    this.root.add(surfPts);
+
+    // Neighbouring alveoli (depth cue) — slightly filled so they are not empty shells
+    const nbGlass = glassMaterial(CYAN, { opacity: 0.1, emissive: 0.05, side: THREE.DoubleSide });
+    const nbRim = fresnelMaterial(CYAN, { power: 2.8, intensity: 0.35 });
     for (const [x, y, z, r] of NEIGHBOURS) {
       const g = new THREE.Mesh(sphere, nbGlass);
       g.position.set(x, y, z);
@@ -581,11 +617,19 @@ export class Level05Ride extends LevelScene {
     }
     this.root.add(this.rig.group);
 
-    // Direction chevrons (hint)
-    this.chevMat = neonMaterial(PINK, 1.6, 0.2);
-    const chevGeo = new THREE.ConeGeometry(0.022, 0.05, 14);
+    // Direction hints — miniature biconcave discs (read as RBCs, not cones/blobs)
+    this.chevMat = new THREE.MeshStandardMaterial({
+      color: 0x6a1838,
+      emissive: 0xff3a5a,
+      emissiveIntensity: 0.7,
+      roughness: 0.4,
+      metalness: 0.05,
+      side: THREE.DoubleSide,
+    });
+    const chevGeo = rbcGeometry();
     for (let k = 0; k < 4; k++) {
       const m = new THREE.Mesh(chevGeo, this.chevMat);
+      m.scale.set(0.028, 0.02, 0.028);
       m.visible = false;
       this.chevrons.push(m);
       this.root.add(m);
@@ -685,16 +729,23 @@ export class Level05Ride extends LevelScene {
   private dragToDs(dx: number, dy: number): number {
     const w = this.vw || window.innerWidth;
     const h = this.vh || window.innerHeight;
-    const eps = 0.02;
+    const eps = 0.035;
     const t0 = Math.min(this.t, 1 - eps);
     this.lut.at(t0, _a).project(this.camera);
     this.lut.at(t0 + eps, _b).project(this.camera);
     const sx = (_b.x - _a.x) * w * 0.5;
     const sy = -(_b.y - _a.y) * h * 0.5;
     const len = Math.hypot(sx, sy);
-    if (len < 0.5) return 0;
+    const mag = Math.hypot(dx, dy);
+    if (len < 0.5) {
+      // Projection failed (extreme framing) — fall back to primary-axis drag.
+      return ((Math.abs(sx) >= Math.abs(sy) ? dx : -dy) / Math.max(w, 1)) * 0.55;
+    }
     const along = (dx * sx + dy * sy) / len;
-    return (along / len) * eps;
+    const projected = (along / Math.max(len, 1)) * eps;
+    // Blend in raw stroke length so short phone swipes still advance the cell.
+    const boost = (mag / Math.max(w, 1)) * 0.22 * Math.sign(along || dx || 1);
+    return projected + boost;
   }
 
   private placeCell(dt: number, snap: boolean): void {
@@ -712,8 +763,9 @@ export class Level05Ride extends LevelScene {
 
   private valueNow(): number {
     const s = this.def.readout;
-    const v0 = s.min + (s.target - s.min) * 0.79;
-    const vFull = Math.min(s.max, s.target + (s.max - s.target) * 0.6);
+    // Venous start ~60%, full arterial saturation at target — drag must move this.
+    const v0 = s.min + (s.target - s.min) * 0.55;
+    const vFull = Math.min(s.max, s.target + (s.max - s.target) * 0.5);
     return lerp(v0, vFull, this.load);
   }
 
@@ -806,13 +858,13 @@ export class Level05Ride extends LevelScene {
     // Vessel
     this.tubeU.time.value = time;
     this.tubeU.focus.value = this.t;
-    this.tubeU.zoneAmt.value = 0.45 + 0.9 * zw * (0.3 + this.moveAmt);
-    this.tubeU.done.value = this.doneFx * 0.8;
+    this.tubeU.zoneAmt.value = 0.3 + 0.55 * zw * (0.3 + this.moveAmt);
+    this.tubeU.done.value = this.doneFx * 0.45;
 
     // Alveolus breathes gently and brightens while exchanging
     const ex = zw * this.moveAmt;
-    this.alvMat.emissiveIntensity = 0.12 + 0.25 * ex;
-    setFresnel(this.alvRim, 0.8 + 0.9 * ex);
+    this.alvMat.emissiveIntensity = 0.07 + 0.16 * ex;
+    setFresnel(this.alvRim, 0.6 + 0.55 * ex);
     this.air.rotation.y += dt * 0.08;
     this.air.scale.setScalar(1 + 0.03 * Math.sin(time * 1.2));
 
@@ -847,7 +899,7 @@ export class Level05Ride extends LevelScene {
       const w = 0.5 + 0.5 * Math.sin(time * 5 - k * 1.1);
       m.scale.setScalar(Math.max(0.001, this.hint * (0.55 + 0.45 * w)));
     }
-    this.chevMat.emissiveIntensity = 1.2 + 1.2 * this.hint;
+    this.chevMat.emissiveIntensity = 0.55 + 0.9 * this.hint;
 
     // Rings
     this.startMat.emissiveIntensity = 0.9 + 0.5 * Math.sin(time * 2);
@@ -863,7 +915,7 @@ export class Level05Ride extends LevelScene {
     const s = this.def.readout;
     const value = this.valueNow();
     const live = this.phase === 'handsOn';
-    const v0 = s.min + (s.target - s.min) * 0.79;
+    const v0 = s.min + (s.target - s.min) * 0.55;
     const past = this.t > ZONE1 + 0.03;
     const zw = zoneWeight(this.t);
     let status: ReadoutStatus = 'idle';

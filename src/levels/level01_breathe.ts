@@ -124,11 +124,13 @@ export class Level01Breathe extends LevelScene {
 
   protected override onEnter(ctx: LevelContext): void {
     const f = this.framing;
-    f.target.set(0, 0.08, 0);
-    f.radius = 0.6;
-    f.dir.set(0.3, 0.12, 1);
-    f.drift = 0.12;
+    // Fit pelvis→crown (~−0.5…+0.75) without cropping the skull on default framing.
+    f.target.set(0, 0.02, 0);
+    f.radius = 0.92;
+    f.dir.set(0.18, 0.02, 1);
+    f.drift = 0.08;
     f.ease = 2.2;
+    f.minDistance = 0.55;
     if (!this.built) {
       this.build(ctx.lowPower);
       this.built = true;
@@ -157,10 +159,10 @@ export class Level01Breathe extends LevelScene {
     this.chest.add(this.ribs, this.dome);
 
     /* Lungs */
-    this.lungGlass = glassMaterial(CYAN, { opacity: 0.28, emissive: 0.2 });
+    this.lungGlass = glassMaterial(CYAN, { opacity: 0.28, emissive: 0.12 });
     this.lungRim = fresnelMaterial(CYAN, { power: 2.3, intensity: 1 });
     this.sparkMat = glowPointsMaterial(0xa8f7ff, 0.024, 0.3);
-    const lobeMat = neonMaterial(AIRWAY, 0.7, 0.2);
+    const lobeMat = neonMaterial(AIRWAY, 0.45, 0.18);
 
     for (const side of [1, -1]) {
       const g = new THREE.Group();
@@ -212,7 +214,7 @@ export class Level01Breathe extends LevelScene {
     }
 
     /* Airway: trachea, cartilage rings, main bronchi */
-    const airwayMat = neonMaterial(AIRWAY, 0.9, 0.25);
+    const airwayMat = neonMaterial(AIRWAY, 0.55, 0.22);
     const trachea = new THREE.TubeGeometry(
       new THREE.LineCurve3(new THREE.Vector3(0, 0.68, 0), new THREE.Vector3(0, 0.29, 0)),
       6,
@@ -407,13 +409,13 @@ export class Level01Breathe extends LevelScene {
     this.dome.scale.y = lerp(DOME_REST_H, 0.06, e);
     this.dome.position.y = lerp(DOME_Y, DOME_Y - 0.06, e);
 
-    this.lungGlass.emissiveIntensity = 0.16 + 0.42 * e;
+    this.lungGlass.emissiveIntensity = 0.1 + 0.28 * e;
     this.lungGlass.opacity = 0.26 + 0.12 * e;
     setFresnel(this.lungRim, 0.85 + 1.1 * e + 0.8 * this.cue);
     this.sparkMat.opacity = 0.15 + 0.75 * e;
     this.domeMat.emissiveIntensity = 0.2 + 0.7 * drive;
     this.fiberMat.opacity = 0.22 + 0.6 * drive;
-    this.glow.intensity = 0.4 + 1.6 * e;
+    this.glow.intensity = 0.3 + 1.0 * e;
 
     // Airflow: direction and brightness follow the rate of breathing.
     const f = this.flow;
