@@ -213,19 +213,40 @@ export class Level01Breathe extends LevelScene {
       this.chest.add(g);
     }
 
-    /* Airway: calm shaft + brighter rings (avoid bloom-white axial pillar) */
-    const tracheaMat = neonMaterial(AIRWAY, 0.22, 0.38);
-    const ringMat = neonMaterial(AIRWAY, 0.4, 0.26);
-    const bronchMat = neonMaterial(AIRWAY, 0.3, 0.32);
+    /* Airway: matte cartilage shaft (no neon bloom pillar) + brighter rings only */
+    const tracheaMat = new THREE.MeshStandardMaterial({
+      color: 0x3a3348,
+      emissive: 0x6a5a9a,
+      emissiveIntensity: 0.04,
+      roughness: 0.72,
+      metalness: 0.02,
+      transparent: true,
+      opacity: 0.55,
+      depthWrite: false,
+    });
+    const ringMat = neonMaterial(AIRWAY, 0.32, 0.22);
+    const bronchMat = new THREE.MeshStandardMaterial({
+      color: 0x342e42,
+      emissive: 0x7a6ab0,
+      emissiveIntensity: 0.08,
+      roughness: 0.55,
+      metalness: 0.02,
+      transparent: true,
+      opacity: 0.62,
+      depthWrite: false,
+    });
     const trachea = new THREE.TubeGeometry(
       new THREE.LineCurve3(new THREE.Vector3(0, 0.68, 0), new THREE.Vector3(0, 0.29, 0)),
-      6,
-      0.017,
-      14,
+      8,
+      0.012,
+      16,
       false,
     );
     this.chest.add(new THREE.Mesh(trachea, tracheaMat));
-    const ringGeo = new THREE.TorusGeometry(0.0195, 0.0036, 6, 20, Math.PI * 1.6);
+    // Faint fresnel lumen rim — readable hollow airway, not a solid white column.
+    const lumenRim = fresnelMaterial(AIRWAY, { power: 2.8, intensity: 0.22, opacity: 0.55 });
+    this.chest.add(new THREE.Mesh(trachea, lumenRim));
+    const ringGeo = new THREE.TorusGeometry(0.0155, 0.0032, 6, 20, Math.PI * 1.6);
     ringGeo.rotateZ(-Math.PI * 0.3);
     ringGeo.rotateX(Math.PI / 2);
     for (let k = 0; k < 8; k++) {
@@ -338,12 +359,12 @@ export class Level01Breathe extends LevelScene {
     this.dome.position.y = DOME_Y;
     this.dome.scale.y = DOME_REST_H;
 
-    /* Airflow particles along trachea → bronchus → deep lung */
+    /* Airflow: keep sparse / off-axis on trachea; denser only in bronchi + lungs */
     for (const side of [1, -1]) {
       const curve = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(0, 0.74, 0),
-        new THREE.Vector3(0, 0.5, 0),
-        new THREE.Vector3(0, 0.31, 0),
+        new THREE.Vector3(side * 0.018, 0.74, 0.012),
+        new THREE.Vector3(side * 0.022, 0.5, -0.01),
+        new THREE.Vector3(side * 0.028, 0.31, 0.008),
         new THREE.Vector3(side * 0.05, 0.265, 0),
         new THREE.Vector3(side * 0.1, 0.2, 0),
         new THREE.Vector3(side * 0.135, 0.13, 0),
@@ -352,28 +373,29 @@ export class Level01Breathe extends LevelScene {
       ]);
       this.airLut.push(curve.getSpacedPoints(90));
     }
-    const nAir = lowPower ? 60 : 120;
+    const nAir = lowPower ? 40 : 72;
     for (let i = 0; i < nAir; i++) {
+      // Bias seeds into distal airway (u>0.35) so trachea centreline stays clear.
       this.airSeeds.push({
-        u: r(),
+        u: 0.32 + r() * 0.68,
         lut: i % 2,
-        jx: (r() - 0.5) * 0.024,
-        jy: (r() - 0.5) * 0.02,
-        jz: (r() - 0.5) * 0.024,
+        jx: (r() - 0.5) * 0.04,
+        jy: (r() - 0.5) * 0.018,
+        jz: (r() - 0.5) * 0.04,
       });
     }
     this.airGeo = new THREE.BufferGeometry();
     this.airGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(nAir * 3), 3));
     this.airGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(nAir * 3), 3));
-    this.airMat = glowPointsMaterial(0xa8e8ff, 0.022, 0, true);
+    this.airMat = glowPointsMaterial(0xa8e8ff, 0.014, 0, true);
     const air = new THREE.Points(this.airGeo, this.airMat);
     air.frustumCulled = false;
     air.renderOrder = 5;
     this.chest.add(air);
 
     /* Motivated inner glow */
-    this.glow = new THREE.PointLight(CYAN, 0.35, 1.6, 2);
-    this.glow.position.set(0, 0.06, 0.3);
+    this.glow = new THREE.PointLight(CYAN, 0.18, 1.4, 2);
+    this.glow.position.set(0, 0.06, 0.38);
     this.chest.add(this.glow);
   }
 
@@ -417,12 +439,12 @@ export class Level01Breathe extends LevelScene {
     this.sparkMat.opacity = 0.15 + 0.75 * e;
     this.domeMat.emissiveIntensity = 0.2 + 0.7 * drive;
     this.fiberMat.opacity = 0.22 + 0.6 * drive;
-    this.glow.intensity = 0.22 + 0.7 * e;
+    this.glow.intensity = 0.12 + 0.35 * e;
 
     // Airflow: direction and brightness follow the rate of breathing.
     const f = this.flow;
     this.airPhase += f * dt * 1.25;
-    this.airMat.opacity = clamp01(Math.abs(f) * 1.15);
+    this.airMat.opacity = clamp01(Math.abs(f) * 0.7);
     this.airMat.color.copy(_cA).lerp(_cB, clamp01(-f * 4));
     const pos = this.airGeo.getAttribute('position') as THREE.BufferAttribute;
     const col = this.airGeo.getAttribute('color') as THREE.BufferAttribute;
@@ -431,9 +453,11 @@ export class Level01Breathe extends LevelScene {
       let u = s.u + this.airPhase;
       u -= Math.floor(u);
       sampleLut(this.airLut[s.lut], u, _v);
-      const spread = 1 + u * 1.5;
+      // Suppress near-mouth / trachea (u small); bloom particles only deeper in.
+      const distal = smoothstep(0.28, 0.5, u);
+      const spread = 1.4 + u * 2.2;
       pos.setXYZ(i, _v.x + s.jx * spread, _v.y + s.jy, _v.z + s.jz * spread);
-      const fade = smoothstep(0, 0.08, u) * (1 - smoothstep(0.82, 1, u));
+      const fade = distal * smoothstep(0.28, 0.4, u) * (1 - smoothstep(0.82, 1, u));
       col.setXYZ(i, fade, fade, fade);
     }
     pos.needsUpdate = true;

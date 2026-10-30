@@ -32,10 +32,9 @@ import {
 export function rbcGeometry(): THREE.LatheGeometry {
   const pts: THREE.Vector2[] = [];
   const N = 22;
-  // Fung biconcave profile — deep centre dimple, plump torus-like rim.
-  // Extra vertical scale so the centre dimple reads under neon / bloom.
+  // Fung biconcave — aggressive centre pallor + thick rim (must read at a glance).
   const h = (rho: number): number =>
-    0.72 * Math.sqrt(Math.max(0, 1 - rho * rho)) * (0.15 + 2.15 * rho * rho - 1.2 * Math.pow(rho, 4));
+    0.95 * Math.sqrt(Math.max(0, 1 - rho * rho)) * (0.04 + 2.85 * rho * rho - 1.55 * Math.pow(rho, 4));
   for (let i = 0; i <= N; i++) {
     const rho = Math.sin(((i / N) * Math.PI) / 2);
     pts.push(new THREE.Vector2(rho, -h(rho)));
@@ -214,41 +213,42 @@ export interface RbcRig {
 export function makeRbcRig(): RbcRig {
   const geo = rbcGeometry();
   const mat = new THREE.MeshStandardMaterial({
-    color: 0x6a1c38,
-    emissive: 0x8a2448,
-    emissiveIntensity: 0.28,
-    roughness: 0.45,
-    metalness: 0.04,
+    color: 0x7a2238,
+    emissive: 0x4a1020,
+    emissiveIntensity: 0.06,
+    roughness: 0.55,
+    metalness: 0.02,
     side: THREE.DoubleSide,
   });
-  const rim = fresnelMaterial(0xff4a6a, { power: 2.1, intensity: 0.7 });
+  const rim = fresnelMaterial(0xff4a6a, { power: 2.4, intensity: 0.35 });
   const body = new THREE.Mesh(geo, mat);
-  // Keep near-unit Y so the Fung dimple depth is not crushed.
-  body.scale.set(1, 0.92, 1);
+  // Preserve Fung dimple depth (near-unit Y).
+  body.scale.set(1, 1.05, 1);
   const shell = new THREE.Mesh(geo, rim);
-  shell.scale.set(1.03, 0.95, 1.03);
+  shell.scale.set(1.02, 1.08, 1.02);
   shell.renderOrder = 7;
   const spin = new THREE.Group();
   spin.add(body, shell);
-  // Central pallor discs — classic discocyte cue when viewed face-on.
+  // Large dark central pallor — the discocyte tell under neon.
   const pallorMat = new THREE.MeshBasicMaterial({
-    color: 0x1c060e,
+    color: 0x0a0206,
     transparent: true,
-    opacity: 0.55,
+    opacity: 0.82,
     depthWrite: false,
     side: THREE.DoubleSide,
   });
-  const pallorGeo = new THREE.CircleGeometry(0.4, 28);
+  const pallorGeo = new THREE.CircleGeometry(0.58, 32);
   for (const sign of [-1, 1] as const) {
     const pallor = new THREE.Mesh(pallorGeo, pallorMat);
     pallor.rotation.x = Math.PI / 2;
-    pallor.position.y = sign * 0.018;
+    pallor.position.y = sign * 0.012;
     pallor.renderOrder = 6;
     spin.add(pallor);
   }
+  // Halo nearly killed — was washing the silhouette into a pink blob.
   const glowGeo = new THREE.BufferGeometry();
   glowGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3), 3));
-  const glow = glowPointsMaterial(0xff3a5a, 0.11, 0.22);
+  const glow = glowPointsMaterial(0xff3a5a, 0.02, 0.02);
   const halo = new THREE.Points(glowGeo, glow);
   halo.frustumCulled = false;
   halo.renderOrder = 8;
@@ -258,15 +258,15 @@ export function makeRbcRig(): RbcRig {
 }
 
 export function tintRbc(rig: RbcRig, c: THREE.Color, flash: number): void {
-  // Keep enough albedo for the dimple to shade; avoid emissive wash-out into a pink blob.
-  rig.mat.color.copy(c).multiplyScalar(0.7);
-  rig.mat.emissive.copy(c);
-  rig.mat.emissiveIntensity = 0.22 + 0.35 * flash;
+  // Shaded albedo only — emissive near-zero so the dimple / rim silhouette survives.
+  rig.mat.color.copy(c).multiplyScalar(0.85);
+  rig.mat.emissive.copy(c).multiplyScalar(0.35);
+  rig.mat.emissiveIntensity = 0.05 + 0.12 * flash;
   const u = rig.rim.uniforms['uColor'];
   if (u) (u.value as THREE.Color).copy(c);
-  setFresnel(rig.rim, 0.55 + 0.45 * flash);
+  setFresnel(rig.rim, 0.28 + 0.22 * flash);
   rig.glow.color.copy(c);
-  rig.glow.opacity = 0.14 + 0.18 * flash;
+  rig.glow.opacity = 0.01 + 0.03 * flash;
 }
 
 /* ================================ level V ================================== */
@@ -288,7 +288,7 @@ const ZONE1 = 0.74;
 const ALV_C = new THREE.Vector3(0, -0.14, -0.24);
 const ALV_R = 0.48;
 const TUBE_R = 0.068;
-const CELL_R = 0.06;
+const CELL_R = 0.038;
 /** Saturation rises fast: most O₂ is loaded in the first third of the contact zone. */
 const LOAD_K = 11;
 const T_START = 0.2;
@@ -411,8 +411,8 @@ export class Level05Ride extends LevelScene {
   private applyRadius(): void {
     const w = this.vw || window.innerWidth;
     const h = this.vh || window.innerHeight;
-    // Pull back so the discocyte silhouette (rim + central pallor) reads, not a fill-frame blob.
-    this.framing.radius = h > w ? 1.48 : 1.28;
+    // Pull back hard — cell must read as a small discocyte, not a fill-frame blob.
+    this.framing.radius = h > w ? 2.15 : 1.85;
   }
 
   protected override onPhase(phase: LevelPhase): void {
@@ -771,13 +771,18 @@ export class Level05Ride extends LevelScene {
     this.lut.at(this.t, this.cellPos);
     this.lut.tangent(this.t, _tan);
     this.rig.group.position.copy(this.cellPos);
-    _q.setFromUnitVectors(_Y, _tan);
+    // Face the disc toward the camera so the central dimple stays readable (not edge-on sausage).
+    _d.copy(this.camera.position).sub(this.cellPos).normalize();
+    if (_d.lengthSq() < 1e-6) _d.copy(_Z);
+    // Mild lean along path so motion still reads, without hiding the pallor.
+    _a.copy(_d).addScaledVector(_tan, 0.22).normalize();
+    _q.setFromUnitVectors(_Y, _a);
     if (snap) this.rig.group.quaternion.copy(_q);
-    else this.rig.group.quaternion.slerp(_q, 1 - Math.exp(-dt * 12));
-    // Squeezed single-file: the cell narrows and lengthens into a bullet as it is pushed.
-    const stretch = clamp01(this.speed * 3);
+    else this.rig.group.quaternion.slerp(_q, 1 - Math.exp(-dt * 10));
+    // Cap stretch hard — sausage deformation hid the biconcave silhouette.
+    const stretch = clamp01(this.speed * 1.2);
     const s = CELL_R * Math.max(0.001, this.fade);
-    this.rig.group.scale.set(s * (1 - 0.06 * stretch), s * (1 + 0.2 * stretch), s * (1 - 0.06 * stretch));
+    this.rig.group.scale.set(s * (1 - 0.02 * stretch), s * (1 + 0.05 * stretch), s * (1 - 0.02 * stretch));
   }
 
   private valueNow(): number {
@@ -864,7 +869,7 @@ export class Level05Ride extends LevelScene {
     _c.copy(DEOXY).lerp(OXY, this.loadVis);
     tintRbc(this.rig, _c, this.flash);
     this.flash = Math.max(0, this.flash - dt * 2.5);
-    this.rig.spin.rotation.x = 0.42 + Math.sin(time * 1.7) * 0.14;
+    this.rig.spin.rotation.x = 0.08 + Math.sin(time * 1.2) * 0.05;
     this.hbGroup.rotation.y += dt * (0.8 + this.speed * 6);
     for (let k = 0; k < 4; k++) {
       const th = ((k + 1) / 4) * 0.92;

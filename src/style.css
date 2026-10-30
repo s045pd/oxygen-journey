@@ -46,7 +46,7 @@
   --pad-b: calc(var(--safe-b) + var(--edge));
   --pad-l: calc(var(--safe-l) + var(--edge));
 
-  --rail-w: 78px;
+  --rail-w: 88px;
   --ctrl-h: 46px;
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -1020,8 +1020,8 @@ canvas.webgl:active {
   top: 45%;
   right: calc(var(--safe-r) + 8px);
   width: var(--rail-w);
-  height: min(56vh, 510px);
-  height: min(56svh, 510px);
+  height: min(60vh, 560px);
+  height: min(60svh, 560px);
   transform: translateY(-50%);
   pointer-events: none;
   transition: opacity 0.6s var(--ease-out);
@@ -1092,7 +1092,7 @@ canvas.webgl:active {
 }
 
 .ring-label {
-  font: 600 12px var(--font-mono);
+  font: 600 13px var(--font-mono);
   letter-spacing: 0.08em;
   fill: rgba(214, 228, 255, 0.72);
   text-anchor: end;
@@ -1104,7 +1104,7 @@ canvas.webgl:active {
 }
 
 .ring-label.is-active {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   fill: #eef5ff;
 }
@@ -1420,7 +1420,7 @@ canvas.webgl:active {
 @media (max-width: 900px) {
   :root {
     --edge: 14px;
-    --rail-w: 64px;
+    --rail-w: 72px;
   }
 
   .sb-text {
@@ -1434,7 +1434,7 @@ canvas.webgl:active {
 @media (max-width: 560px) {
   :root {
     --edge: 10px;
-    --rail-w: 50px;
+    --rail-w: 58px;
     --ctrl-h: 42px;
   }
 
@@ -1583,8 +1583,8 @@ canvas.webgl:active {
   .scale-ring-host {
     top: 38%;
     right: calc(var(--safe-r) + 2px);
-    height: min(42vh, 350px);
-    height: min(42svh, 350px);
+    height: min(46vh, 390px);
+    height: min(46svh, 390px);
   }
 
   .ring-end {

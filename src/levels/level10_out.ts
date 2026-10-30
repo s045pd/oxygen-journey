@@ -50,9 +50,9 @@ const COL_LUNG = new THREE.Color(0xff5a7a);
 const COL_WARN = new THREE.Color(0xffb020);
 const COL_OUTLET = new THREE.Color(0xb57bff);
 const LIQ_CLEAR = new THREE.Color(0x0d3f4c);
-const LIQ_MILK = new THREE.Color(0xc2ced4);
+const LIQ_MILK = new THREE.Color(0xe6ecf0);
 const EMI_CLEAR = new THREE.Color(0x0b4656);
-const EMI_MILK = new THREE.Color(0x2e3a42);
+const EMI_MILK = new THREE.Color(0x12161a);
 
 /** Conical flask outer profile (radius, height above base). */
 const OUTER_PROFILE: ReadonlyArray<readonly [number, number]> = [
@@ -483,7 +483,7 @@ export class Level10Out extends LevelScene {
         this.doneFlash = 1;
       }
     } else if (phase === 'tour') {
-      this.demoB = Math.min(40, this.demoB + this.flowOut * step * 7);
+      this.demoB = Math.min(78, this.demoB + this.flowOut * step * 14);
       this.demoA = Math.min(4, this.demoA + this.flowIn * step * 0.3);
     }
     const showB = phase === 'tour' ? this.demoB : this.cloudB;
@@ -511,8 +511,8 @@ export class Level10Out extends LevelScene {
     this.hlA = damp(this.hlA, gA, 3, step);
     this.hlB = damp(this.hlB, gB, 3, step);
 
-    this.updateFlask(this.fB, this.flowOut, this.visB, this.hlB, this.doneFlash, step, time);
-    this.updateFlask(this.fA, this.flowIn, this.visA, this.hlA, 0, step, time);
+    this.updateFlask(this.fB, this.flowOut, this.visB, this.hlB, this.doneFlash, step, time, true);
+    this.updateFlask(this.fA, this.flowIn, this.visA, this.hlA, 0, step, time, false);
     for (const s of this.streams) {
       this.updateStream(s, s.kind === 'out' ? this.flowOut : this.flowIn, step, time);
     }
@@ -522,7 +522,7 @@ export class Level10Out extends LevelScene {
     this.ringMat.emissiveIntensity = 0.8 + flow * 1.4;
     this.stripMat.emissiveIntensity = 1.4 + this.doneFlash * 2.5 + Math.sin(time * 1.3) * 0.15;
     if (this.light) {
-      this.light.intensity = 0.32 + this.flowOut * 1.1 + this.visB * 0.35 + this.doneFlash * 1.1;
+      this.light.intensity = 0.1 + this.flowOut * 0.35 + this.visB * 0.08 + this.doneFlash * 0.4;
     }
   }
 
@@ -575,8 +575,8 @@ export class Level10Out extends LevelScene {
     this.buildStreams(lp);
 
     if (!lp) {
-      const light = new THREE.PointLight(0xa8c4d0, 0.32, 1.6, 2);
-      light.position.set(FLASK_X, BENCH_Y + 0.15, 0.25);
+      const light = new THREE.PointLight(0xa8c4d0, 0.14, 1.2, 2);
+      light.position.set(FLASK_X, BENCH_Y + 0.28, 0.35);
       this.root.add(light);
       this.light = light;
     }
@@ -710,25 +710,25 @@ export class Level10Out extends LevelScene {
 
     // Calcium carbonate precipitate specks.
     const r = rng(seed);
-    const n = lp ? 200 : 380;
+    const n = lp ? 320 : 560;
     const specks: Speck[] = [];
     for (let i = 0; i < n; i++) {
-      const h = 0.02 + r() * (FILL_H - 0.035);
-      const rMax = (h < 0.035 ? 0.2 : flaskRadiusAt(h)) - 0.022;
+      const h = 0.015 + r() * (FILL_H - 0.02);
+      const rMax = (h < 0.035 ? 0.2 : flaskRadiusAt(h)) - 0.018;
       specks.push({
         r: Math.sqrt(r()) * rMax,
         ang: r() * Math.PI * 2,
         h,
-        spd: 0.4 + r() * 0.9,
+        spd: 0.35 + r() * 0.85,
         wob: r() * 6.28,
       });
     }
     const precipGeo = new THREE.BufferGeometry();
     precipGeo.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(n * 3), 3));
-    // Matte CaCO₃ motes — NormalBlending so turbidity reads milky, not white bloom.
+    // Dense chalky CaCO₃ — NormalBlending so turbidity reads milky, not tip-glow bloom.
     const precipMat = new THREE.PointsMaterial({
-      color: 0xd8e2e8,
-      size: 0.038,
+      color: 0xeef2f5,
+      size: 0.055,
       transparent: true,
       opacity: 0,
       depthWrite: false,
@@ -964,6 +964,7 @@ export class Level10Out extends LevelScene {
     flash: number,
     dt: number,
     time: number,
+    limewater: boolean,
   ): void {
     // Spawn bubbles at the tube tip.
     f.spawnAcc += flow * 32 * dt;
@@ -1006,25 +1007,30 @@ export class Level10Out extends LevelScene {
     });
     f.bubbleMesh.instanceMatrix.needsUpdate = true;
 
-    // Surface ripple.
+    // Surface ripple — keep emissive low so B bottom never reads as white light.
     f.ripple *= Math.exp(-3.5 * dt);
     const rip = f.ripple + flow * 0.4;
     const sc = 1 + Math.sin(time * 22) * 0.012 * rip;
     f.surface.scale.set(sc, sc, 1);
     f.surface.position.y = FILL_H + Math.sin(time * 17) * 0.002 * rip;
-    f.surfaceMat.emissiveIntensity = 0.25 + rip * 0.55 + vis * 0.15;
+    f.surfaceMat.emissiveIntensity = limewater
+      ? 0.08 + rip * 0.18 + vis * 0.04
+      : 0.2 + rip * 0.4 + vis * 0.1;
 
-    // Limewater colour: clear → milky Ca(OH)₂ / CaCO₃ turbidity (matte, not white glow).
-    const k = Math.pow(clamp01(vis), 0.7);
+    // Flask B: steep milkiness (visible by ~30–40%). Flask A stays nearly clear.
+    const milkVis = limewater ? clamp01(vis * 2.4) : clamp01(vis * 0.55);
+    const k = limewater ? Math.pow(milkVis, 0.45) : Math.pow(clamp01(vis), 0.85);
     f.liquidMat.color.copy(LIQ_CLEAR).lerp(LIQ_MILK, k);
     f.liquidMat.emissive.copy(EMI_CLEAR).lerp(EMI_MILK, k);
-    f.liquidMat.emissiveIntensity = lerp(0.14, 0.1, k) + flash * 0.12 + flow * 0.04;
-    f.liquidMat.opacity = lerp(0.42, 0.94, k);
-    f.liquidMat.roughness = lerp(0.22, 0.78, k);
+    f.liquidMat.emissiveIntensity = limewater
+      ? lerp(0.08, 0.02, k) + flash * 0.05
+      : lerp(0.12, 0.06, k) + flow * 0.03;
+    f.liquidMat.opacity = limewater ? lerp(0.48, 0.98, k) : lerp(0.4, 0.55, k);
+    f.liquidMat.roughness = limewater ? lerp(0.28, 0.92, k) : lerp(0.22, 0.4, k);
 
-    // Precipitate specks swirl, faster when bubbling — dense enough to read as cloudiness.
-    f.precipMat.opacity = clamp01(vis * 1.85) * 0.92;
-    f.precipMat.size = lerp(0.028, 0.046, k);
+    // Dense chalk precipitate — appears early on B, barely on A.
+    f.precipMat.opacity = limewater ? clamp01(vis * 3.2) * 0.98 : clamp01(vis * 0.6) * 0.35;
+    f.precipMat.size = limewater ? lerp(0.042, 0.072, k) : lerp(0.02, 0.03, k);
     if (f.precipMat.opacity > 0.005) {
       const pa = f.precipGeo.getAttribute('position') as THREE.BufferAttribute;
       const swirl = dt * (0.25 + flow * 1.3);
@@ -1040,13 +1046,22 @@ export class Level10Out extends LevelScene {
       pa.needsUpdate = true;
     }
 
-    // Gauge, rim and accents.
+    // Gauge, rim and accents — kill tipGlow / base wash once B turns milky.
     setUniform(f.gauge, 'uProgress', clamp01(vis));
-    setUniform(f.gauge, 'uGlow', 0.8 + flow * 0.6 + flash * 1.5 + hl * 0.3);
-    setFresnel(f.shellMat, 0.55 + hl * 0.9 + flow * 0.25);
-    f.baseRingMat.emissiveIntensity = 0.4 + hl * 0.55 + flash * 0.7;
-    f.tipGlowMat.opacity = clamp01(flow * 0.7) * (0.55 - 0.25 * vis);
-    f.tipGlow.scale.setScalar(0.04 + flow * 0.045);
+    setUniform(f.gauge, 'uGlow', 0.7 + flow * 0.45 + flash * 1.1 + hl * 0.25);
+    setFresnel(f.shellMat, 0.45 + hl * 0.7 + flow * 0.15);
+    f.baseRingMat.emissiveIntensity = limewater
+      ? 0.18 + hl * 0.25 + flash * 0.3
+      : 0.35 + hl * 0.45 + flash * 0.5;
+    if (limewater) {
+      // Once any turbidity starts, tipGlow must die — it was reading as "bottom white light".
+      const tipKill = 1 - smoothstep(0.02, 0.18, vis);
+      f.tipGlowMat.opacity = clamp01(flow * 0.25) * 0.18 * tipKill;
+      f.tipGlow.scale.setScalar(0.02 + flow * 0.015 * tipKill);
+    } else {
+      f.tipGlowMat.opacity = clamp01(flow * 0.55) * 0.4;
+      f.tipGlow.scale.setScalar(0.035 + flow * 0.03);
+    }
   }
 
   private updateStream(s: Stream, flow: number, dt: number, time: number): void {
